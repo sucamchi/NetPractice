@@ -4,11 +4,10 @@
 
 ## Description
 
-NetPractice is an introduction to computer networking. Instead of writing a
-program, you configure ten simulated networks through a training interface that
-runs in your web browser. Each level shows a network diagram that does not work,
-one or more objectives at the top of the page, and a set of editable fields. You
-change those fields until every objective reports `OK`.
+NetPractice is an introduction to computer networking. Ten simulated networks
+are configured through a training interface that runs in the web browser. 
+Each level shows a network diagram that does not work,
+one or more objectives at the top of the page, and a set of editable fields.
 
 The goal is to understand **TCP/IP addressing**,
  how a **switch** joins machines inside one
@@ -16,8 +15,6 @@ network, how a **router** connects separate networks, and how a **default
 gateway** and a **routing table** decide where a packet goes next.
 
 ## Instructions
-
-### Running the training interface
 
 From the repository root:
 
@@ -46,31 +43,25 @@ Then open `http://localhost:49242` in a browser.
 2. Read the objectives at the top of the level. They name the machines that
    have to reach each other.
 3. Work the addressing out before typing.
-4. Edit the unshaded fields only. Shaded fields are locked and are part of the
-   puzzle, not the solution.
-5. Click **Check again**. The log panel at the bottom of the page traces the
-   packet hop by hop and shows in red where it stops.
-6. When every objective reports `OK`, click **Get my config** before moving on.
-   The browser downloads a small JSON file named after the level.
-7. Click **Next level** and repeat.
+4. Edit the unshaded fields only.
+5. Click **Check again**. The log panel at the bottom of the page traces the packet .
+6. When every objective reports `OK`, click **Get my config** before moving on. The browser downloads a small JSON file named after the level.
+7. Click **Next level.** 
 
 ### Exporting and submitting
 
 **Get my config** downloads one file per level, named `level1.json` through
-`level10.json`. Each file records only the fields you were allowed to edit:
+`level10.json`. Each file records only the fields you were allowed to edit, for example:
 
 ```json
 {"routes":{},"ifs":{"A1":{"ip":"104.95.23.11"},"B1":{},"C1":{},"D1":{"ip":"211.191.192.74"}}}
 ```
 
-Submission requires 10 exported configuration files, one per level, placed at
-the root of your Git repository. Keep the filenames the interface produces.
-Only what is in your repository is evaluated, so check the names before you
-finish.
+Submission requires 10 exported configuration files, one per level, placed at the root of your Git repository.
 
 ### Evaluation mode
 
-The **Evaluation** tab generates a fresh random configuration and gives you
+The **Evaluation** tab gives you
 three levels drawn at random with a limited amount of time
 to solve them.
 
@@ -95,7 +86,7 @@ to solve them.
 ### What is a network?
 
 A network is a group of devices that can exchange data. A **LAN** (local area
-network) covers a limited area such as a flat, a floor or a campus. The Internet
+network) covers a limited area. The Internet
 is an enormous network built out of many networks joined together.
 
 For two devices to communicate, two things must exist: a physical or wireless
@@ -103,22 +94,6 @@ path between them, and an addressing scheme that identifies both the destination
 device and the network it belongs to. NetPractice is entirely about the second
 one.
 
-Here is the shape almost every level ends up having:
-
-```
-  host A                 host B
-  192.168.1.1            192.168.1.2
-      |                      |
-      +------- switch -------+
-                 |
-            R11: 192.168.1.254     <- same subnet as A and B, so it can be their gateway
-        +--------+---------+
-        |     router R1    |
-        +--------+---------+
-            R12: 163.172.250.12    <- a different subnet, facing outward
-                 |
-            Internet: 163.172.250.1
-```
 
 Everything above the router is one subnet. Everything below it is another. The
 router is the only device that belongs to both, which is exactly why traffic has
@@ -146,12 +121,6 @@ The two protocols in the name do different jobs:
   that. It splits data into numbered segments, checks what arrived, and asks for
   anything missing to be sent again.
 
-Three of these layers map directly onto things you see in the levels. A switch
-works at the link layer, moving frames inside one network. A router works at the
-Internet layer, choosing between networks. TCP sits above both and is the reason
-a connection needs to work in **both directions**: a request that arrives but
-whose reply cannot find its way home is not a working connection. Every
-objective in NetPractice is checked in both directions for this reason.
 
 ### IPv4 addresses
 
@@ -181,9 +150,6 @@ Not every 32-bit value is a usable address:
   on a link between two machines.
 - Addresses from `224.0.0.0` upward are multicast and reserved, so the first
   octet of a normal host address stays at 223 or below.
-
-Assigning any of these to an interface is invalid, and levels 2 and 3 hand you
-exactly that mistake to find and fix.
 
 IPv6 is the 128-bit successor to IPv4 and exists because 32 bits ran out. It is
 not used in this project.
@@ -388,50 +354,7 @@ Reading a table, then, is: take the destination address, test it against each
 entry's network in turn, stop at the first match, and send the packet to that
 entry's next hop. If nothing matches at all, the packet is dropped.
 
-### Public and private addresses
-
-Some ranges are reserved for use inside private networks. They are free for
-anyone to use at home or in a company, and precisely because everyone reuses
-them, **routers on the Internet refuse to carry them**.
-
-| Range | CIDR | Use |
-| --- | --- | --- |
-| 10.0.0.0 to 10.255.255.255 | `10.0.0.0/8` | Private |
-| 172.16.0.0 to 172.31.255.255 | `172.16.0.0/12` | Private |
-| 192.168.0.0 to 192.168.255.255 | `192.168.0.0/16` | Private |
-| 127.0.0.0 to 127.255.255.255 | `127.0.0.0/8` | Loopback, never on a link |
-| 224.0.0.0 and above | `224.0.0.0/4` | Multicast and reserved |
-
-Any level containing the Internet cares about this distinction. An interface
-facing the Internet needs a public address, and traffic sent toward the Internet
-with a private destination goes nowhere. Inside your own network, private
-addresses are perfectly normal and are what you would usually choose.
-
-## A method that works on every level
-
-Work outward from the links you can see, and calculate before you type.
-
-1. **Write down every interface**: its name, its IP and its mask. Do this for
-   locked fields too, because those are the constraints that decide the rest.
-2. **Calculate each subnet**: network address, usable range, broadcast address,
-   using the block-size method above.
-3. **Group the interfaces by link.** Two interfaces joined by a cable, or joined
-   through a switch, must land in the same subnet with the same mask and
-   different host addresses.
-4. **Check the routers.** No two interfaces on one router may overlap. This is
-   usually what forces you to use a longer prefix, splitting one range into
-   several small ones.
-5. **Set the gateways.** Each host's gateway is the router interface sitting on
-   that host's own subnet.
-6. **Fill in the routes** for networks that are not directly attached, next hop
-   first, and keep `default` at the bottom.
-7. **Walk the path by hand, in both directions.** Start at the source, ask at
-   each device "is the destination on one of my subnets?", follow either the
-   interface or the matching route, and repeat. Then do the same walk backwards,
-   because the reply has to find its way home too.
-8. **Click Check again and read the log.** It replays that same walk and marks
-   in red the first hop that failed. Fix that hop and only that hop, then check
-   again. Guessing at random tends to break the parts that already worked.
+## My Method
 
 ## Common mistakes
 
@@ -456,6 +379,7 @@ Work outward from the links you can see, and calculate before you type.
 - 42 NetPractice en.subject.pdf
 - [NetPractice guide by caroldaniel](https://github.com/caroldaniel/42sp-cursus-netpractice)
 - [NetPractice article by imyzf](https://medium.com/@imyzf/netpractice-2d2b39b6cf0a)
-- [NetPractice guide by lpaube](https://github.com/lpaube/NetPractice),
+- [NetPractice guide by lpaube](https://github.com/lpaube/NetPractice)
+- [NetPractice: An Intro to IP Addresses and Subnets](https://www.youtube.com/watch?v=HQUw0CfQWAM&t=1097s)
 
 AI was used to help structure the README.md and understand new concepts.
