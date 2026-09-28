@@ -378,6 +378,7 @@ entry's next hop. If nothing matches at all, the packet is dropped.
 
 - 42 NetPractice en.subject.pdf
 - [NetPractice guide by caroldaniel](https://github.com/caroldaniel/42sp-cursus-netpractice)
+- [NetPractice guide by sarafreitas](https://github.com/SaraFreitas-dev/NetPractice/)
 - [NetPractice article by imyzf](https://medium.com/@imyzf/netpractice-2d2b39b6cf0a)
 - [NetPractice guide by lpaube](https://github.com/lpaube/NetPractice)
 - [NetPractice: An Intro to IP Addresses and Subnets](https://www.youtube.com/watch?v=HQUw0CfQWAM&t=1097s)
