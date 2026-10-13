@@ -4,15 +4,13 @@
 
 ## Description
 
-NetPractice is an introduction to computer networking. Ten simulated networks
+NetPractice is an introduction to computer networking. Simulated networks
 are configured through a training interface that runs in the web browser. 
 Each level shows a network diagram that does not work,
 one or more objectives at the top of the page, and a set of editable fields.
 
-The goal is to understand **TCP/IP addressing**,
- how a **switch** joins machines inside one
-network, how a **router** connects separate networks, and how a **default
-gateway** and a **routing table** decide where a packet goes next.
+The goal is to understand **TCP/IP addressing**, how a **switch** joins machines inside one
+network and how a **router** connects separate networks.
 
 ## Instructions
 
@@ -25,8 +23,7 @@ cd net_practice
 
 The script picks a free port, starts a local Python web server, and tries to
 open your browser. If it does not open by itself, visit the URL the script
-prints, which looks like `http://localhost:49242`. Press `Ctrl-C` to stop the
-server.
+prints.
 
 If `run.sh` does not work on your machine, start the server yourself:
 
@@ -40,13 +37,11 @@ Then open `http://localhost:49242` in a browser.
 ### Training workflow
 
 1. Choose the **Training** tab and enter your 42 intranet login.
-2. Read the objectives at the top of the level. They name the machines that
-   have to reach each other.
-3. Work the addressing out before typing.
-4. Edit the unshaded fields only.
-5. Click **Check again**. The log panel at the bottom of the page traces the packet .
-6. When every objective reports `OK`, click **Get my config** before moving on. The browser downloads a small JSON file named after the level.
-7. Click **Next level.** 
+2. Read the objectives at the top of the level.
+3. Edit the unshaded fields only.
+4. Click **Check again**. The log panel at the bottom of the page traces the packet .
+5. When every objective reports `OK`, click **Get my config** before moving on to download a small JSON file named after the level.
+6. Click **Next level.** 
 
 ### Exporting and submitting
 
@@ -59,27 +54,6 @@ Then open `http://localhost:49242` in a browser.
 
 Submission requires 10 exported configuration files, one per level, placed at the root of your Git repository.
 
-### Evaluation mode
-
-The **Evaluation** tab gives you
-three levels drawn at random with a limited amount of time
-to solve them.
-
-## The ten levels
-
-
-| Level | What is on screen | The idea it adds |
-| --- | --- | --- |
-| 1 | Two isolated pairs of hosts | Two machines talk only when both addresses fall inside the same subnet |
-| 2 | Two isolated pairs of hosts | Masks must be contiguous to be valid, `/30` means the same as a dotted mask, and some addresses are reserved and unusable |
-| 3 | Three hosts around a switch | A switch does not split anything: everything attached to it is one single subnet |
-| 4 | Hosts, a switch, a router with three interfaces | A router's interfaces must sit on separate subnets that do not overlap |
-| 5 | Two hosts, one router, first routing tables | The default gateway, and what a single route entry is made of |
-| 6 | A host, a switch, a router, the Internet | Public against private addresses, and the default route out to the Internet |
-| 7 | Two routers back to back, no switch | Splitting one address range into several non-overlapping subnets, one per link |
-| 8 | Two hosts, two routers, an ISP, the Internet | Several routes on one router, and a path that has to work end to end |
-| 9 | Four hosts, two routers, a switch, the Internet | Everything at once, including the order routes are written in |
-| 10 | The same scale, with most fields locked | Deducing the few values you may change from the many you may not |
 
 ## Networking fundamentals
 
@@ -151,8 +125,7 @@ Not every 32-bit value is a usable address:
 - Addresses from `224.0.0.0` upward are multicast and reserved, so the first
   octet of a normal host address stays at 223 or below.
 
-IPv6 is the 128-bit successor to IPv4 and exists because 32 bits ran out. It is
-not used in this project.
+IPv6 is the 128-bit successor to IPv4 that exists because 32 bits ran out and is not used in this project.
 
 ### Subnet masks and CIDR
 
@@ -168,10 +141,6 @@ portion, the `0`s mark the host portion.
 network bits, so `255.255.255.0` and `/24` are two spellings of one mask. The
 interface accepts either.
 
-The ones-then-zeros rule is strict. `255.255.255.32` looks plausible and is not a
-mask at all, because in binary it is `11111111.11111111.11111111.00100000`: the
-run of ones is broken by zeros. Any mask with a gap is rejected.
-
 From the prefix, two numbers follow:
 
 ```
@@ -182,20 +151,6 @@ usable host addresses    = 2^(32 - prefix) - 2
 The subtraction removes the network address and the broadcast address. This is
 also why a `/31` has no usable hosts, and why the smallest subnet that can hold
 a link between two routers is a `/30`, which gives exactly two.
-
-To find which network an address belongs to, apply a bitwise AND between the
-address and the mask. A `1` in the mask keeps the address bit, a `0` clears it:
-
-```
-  192.168.20.222   11000000.10101000.00010100.11011110
-& 255.255.255.224  11111111.11111111.11111111.11100000
-= 192.168.20.192   11000000.10101000.00010100.11000000
-```
-
-Two interfaces are on the same subnet when this calculation gives them the same
-answer, using the same mask. If either the address or the mask differs enough to
-change the result, they cannot talk to each other directly, even with a cable
-between them.
 
 ### Finding a subnet range by hand
 
@@ -212,46 +167,6 @@ answer in a few seconds, and it is the one worth drilling:
 5. The first address in the block is the **network address**, the last is the
    **broadcast address**, and everything in between is usable.
 
-**Example 1.** `10.20.4.13` with mask `255.255.255.248`, that is `/29`.
-
-```
-Block size     256 - 248 = 8
-Boundaries     0, 8, 16, 24, ...
-13 sits in     8 to 15
-
-Network        10.20.4.8
-Usable         10.20.4.9  to  10.20.4.14
-Broadcast      10.20.4.15
-```
-
-**Example 2.** `192.168.20.222` with mask `255.255.255.224`, that is `/27`.
-
-```
-Block size     256 - 224 = 32
-Boundaries     0, 32, 64, ..., 192, 224
-222 sits in    192 to 223
-
-Network        192.168.20.192
-Usable         192.168.20.193  to  192.168.20.222
-Broadcast      192.168.20.223
-```
-
-**Example 3, where the block is not in the last octet.** `118.198.15.30` with
-mask `255.255.254.0`, that is `/23`. The interesting octet is the third.
-
-```
-Block size     256 - 254 = 2, counted in the THIRD octet
-Boundaries     0, 2, 4, ..., 14, 16
-15 sits in     14 to 15
-
-Network        118.198.14.0
-Usable         118.198.14.1  to  118.198.15.254
-Broadcast      118.198.15.255
-```
-
-This last case is the one that catches people out. A `/23` subnet spans two
-values of the third octet, so `118.198.14.200` and `118.198.15.7` are neighbours
-on the same network even though the octet in the middle differs.
 
 ### CIDR reference table
 
@@ -286,10 +201,6 @@ the bottom rows, `/24` down to `/30`, covers most of what the levels ask for.
 | /31 | 255.255.255.254 | 2 (4th) | 2 | 0 |
 | /32 | 255.255.255.255 | 1 (4th) | 1 | 1 |
 
-The pattern in the mask column is worth noticing on its own. Each step down
-halves the block, and the values `128, 192, 224, 240, 248, 252, 254, 255` are
-the only ones that can appear in the octet that varies. If a mask in a level
-contains any other number, it is invalid.
 
 ### Switches
 
@@ -327,52 +238,6 @@ router that will forward it onward. For the handover to work:
 - It must be a usable host address, never a network or broadcast address.
 - It cannot be the sender's own address.
 
-In the diagram earlier, host A's gateway is `192.168.1.254`, which is R11's
-address. R11 is on A's subnet, so A can reach it, and from there R1 takes over.
-
-### Routing tables
-
-A routing table is the list a device consults when the destination is not on one
-of its own subnets. Each entry has two parts:
-
-- **Destination**: a network in CIDR form, such as `192.168.10.0/24`. It is
-  matched against the destination address of the packet.
-- **Next hop** (the gateway): the address of the device that should receive the
-  packet next. The same rules as for a default gateway apply, since a default
-  gateway is simply one of these entries.
-
-The entry `0.0.0.0/0`, also written `default`, matches every possible address.
-It is the catch-all for "anything I have no specific entry for", and it is
-normally what points at the Internet.
-
-**Order matters.** The table is read from top to bottom and the first entry
-whose destination matches is the one used, so a `default` entry placed above a
-specific one would swallow everything and the specific entry would never be
-reached. Write specific routes first and keep `default` last.
-
-Reading a table, then, is: take the destination address, test it against each
-entry's network in turn, stop at the first match, and send the packet to that
-entry's next hop. If nothing matches at all, the packet is dropped.
-
-## My Method
-
-## Common mistakes
-
-- Giving an interface the network or the broadcast address of its own subnet.
-- Two interfaces on one subnet sharing the same IP address.
-- Two interfaces on the same router covering overlapping ranges.
-- A mask whose binary form is not an unbroken run of ones, such as
-  `255.255.255.32`.
-- A gateway that is not inside any of the sender's own subnets.
-- A gateway that is in the right subnet but is not the exact address of the
-  neighbouring interface.
-- A `default` route written above a more specific route, which hides it.
-- Sending private addresses toward the Internet, or putting a private address on
-  an interface that faces it.
-- Forgetting the return path. A configuration that delivers the request but
-  cannot deliver the reply still fails.
-- Leaving an address in `127.0.0.0/8` or above `223` in the first octet on a
-  real link.
 
 ## Resources
 
